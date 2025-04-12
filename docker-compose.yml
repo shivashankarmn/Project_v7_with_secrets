@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  # Backend service (Spring Boot application)
+  SVM-SERVICE:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    image: shivas22/vmbackendimagev1
+    container_name: vmbackendcontainer
+    ports:
+      - "8082:8082"  # Expose backend service on port 8082
+    env_file:
+      - v.env
+    environment:
+      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - app-network  # Ensure the backend is on the app-network
+
+  # Frontend service (React application)
+  FRONTEND:
+    build:
+      context: ./Frontend  # Note: Ensure this matches your directory name (case-sensitive)
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL_USER: ${REACT_APP_API_URL_USER}
+        
+    image: shivas22/frontendimgv1
+    container_name: svmreact-frontend
+    ports:
+      - "3000:3000"  # Expose frontend service on port 3000
+    depends_on:
+      - SVM-SERVICE  # Ensure the backend service is up before starting frontend
+    env_file:
+      - v.env
+    environment:
+
+          REACT_APP_API_URL_USER: ${REACT_APP_API_URL_USER}
+
+      
+    
+    # environment:
+    #   REACT_APP_API_URL_SVM: "http://13.208.137.17/:8082"  # Backend API URL for the React frontend
+    networks:
+      - app-network  # Ensure frontend is on the same network as the backend
+
+networks:
+  app-network:
+    driver: bridge  # Use the bridge driver for Docker networking
